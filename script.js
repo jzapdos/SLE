@@ -11,16 +11,32 @@ function setCart(cart) {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
 }
 
+/* ✅ NEW: Toast function */
+function showAddedToast(name) {
+  const toastEl = document.getElementById("cartToast");
+  const toastBody = document.getElementById("cartToastBody");
+  if (!toastEl || !toastBody) return;
+
+  toastBody.textContent = `Added to cart: ${name}`;
+
+  const toast = bootstrap.Toast.getOrCreateInstance(toastEl, {
+    delay: 1200
+  });
+  toast.show();
+}
+
 function addItem(id, name, price) {
   const cart = getCart();
   if (!cart[id]) cart[id] = { id, name, price: Number(price), qty: 1 };
   else cart[id].qty++;
   setCart(cart);
   renderCart();
+
+  /* ✅ SHOW TOAST */
+  showAddedToast(name);
 }
 
 function renderCart() {
-  // Works on pages that have cart display, AND still updates badge on other pages
   const cart = getCart();
   const items = Object.values(cart);
 
@@ -33,13 +49,13 @@ function renderCart() {
   if (badge) badge.textContent = count;
 
   const area = $("#cartItemsArea");
-  if (!area) return; // if we're not on cart.html, stop here safely
+  if (!area) return;
 
   if (items.length === 0) {
     area.innerHTML = `<div class="text-muted">Your cart is empty.</div>`;
-    $("#subtotalText").textContent = money(0);
-    $("#taxText").textContent = money(0);
-    $("#totalText").textContent = money(0);
+    if ($("#subtotalText")) $("#subtotalText").textContent = money(0);
+    if ($("#taxText")) $("#taxText").textContent = money(0);
+    if ($("#totalText")) $("#totalText").textContent = money(0);
     return;
   }
 
@@ -102,7 +118,8 @@ function renderCart() {
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".add-to-cart").forEach((btn) => {
-    btn.onclick = () => addItem(btn.dataset.id, btn.dataset.name, btn.dataset.price);
+    btn.onclick = () =>
+      addItem(btn.dataset.id, btn.dataset.name, btn.dataset.price);
   });
 
   const clearBtn = $("#clearCartBtn");
